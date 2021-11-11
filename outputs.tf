@@ -1,3 +1,3 @@
 output "instance_ip_addr" {
-  value = aws_instance.arn
+  value = aws_instance.app_server.arn
 }
