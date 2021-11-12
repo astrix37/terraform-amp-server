@@ -10,10 +10,23 @@ terraform {
   required_version = ">= 0.14.9"
 }
 
+#------------------------------------------------------------------
+
 data "aws_subnet" "selected" {
   provider = aws.environment
   id       = var.subnet_id
 }
+
+data "template_file" "userdata_combo" {
+  template  = "${file("${path.cwd}/doc/userdata_amp_combo.tpl")}"
+  vars      = {
+    
+    instance_dns    = "craft.cjgamer.com"
+    
+  }
+}
+
+#------------------------------------------------------------------
 
 resource "aws_ebs_volume" "example" {
   provider = aws.environment
@@ -94,7 +107,7 @@ resource "aws_instance" "app_server" {
 
   ami                     = var.image_id
   instance_type           = var.instance_size
-  key_name                = "craftkey3"
+  key_name                = var.key_name
   user_data               = var.user_data
   availability_zone       = data.aws_subnet.selected.availability_zone
   subnet_id               = var.subnet_id
@@ -114,12 +127,4 @@ resource "aws_volume_attachment" "ebs_att" {
   device_name = "/dev/sdh"
   volume_id   = aws_ebs_volume.example.id
   instance_id = aws_instance.app_server.id
-}
-
-output "generic_public_ip" {
-  value = aws_instance.app_server.public_ip
-}
-
-output "instance_id" {
-  value = aws_instance.app_server.id
 }
