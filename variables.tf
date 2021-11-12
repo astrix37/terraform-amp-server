@@ -44,10 +44,6 @@ variable "policy_name" {
   type    = string
 }
 
-variable "user_data" {
-  type    = string
-}
-
 variable "mode" {
   type    = string
 }
@@ -57,6 +53,16 @@ variable "volume_mount_id" {
 }
 
 variable "license_id" {
+  type    = string
+  default = ""
+}
+
+variable "setup_dns" {
+  type    = bool
+  default = false
+}
+
+variable "setup_dns_on" {
   type    = string
   default = ""
 }

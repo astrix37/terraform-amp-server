@@ -17,12 +17,12 @@ data "aws_subnet" "selected" {
   id       = var.subnet_id
 }
 
-data "template_file" "userdata_combo" {
-  template  = "${file("${path.cwd}/doc/userdata_amp_combo.tpl")}"
+data "template_file" "userdata" {
+  template  = "${file("${path.module}/userdata/standalone.tpl")}"
   vars      = {
-    
-    instance_dns    = "craft.cjgamer.com"
-    
+    mode            = var.mode
+    instance_dns    = var.instance_dns
+    volume_mount_id = var.volume_mount_id
   }
 }
 
@@ -108,7 +108,7 @@ resource "aws_instance" "app_server" {
   ami                     = var.image_id
   instance_type           = var.instance_size
   key_name                = var.key_name
-  user_data               = var.user_data
+  user_data               = data.template_file.userdata.rendered
   availability_zone       = data.aws_subnet.selected.availability_zone
   subnet_id               = var.subnet_id
   vpc_security_group_ids  = [aws_security_group.allow_tls.id]
@@ -127,4 +127,23 @@ resource "aws_volume_attachment" "ebs_att" {
   device_name = "/dev/sdh"
   volume_id   = aws_ebs_volume.example.id
   instance_id = aws_instance.app_server.id
+}
+
+data "aws_route53_zone" "dns_zone" {
+  count         = var.setup_dns ? 1 : 0
+  provider      = aws.environment
+
+  name          = var.setup_dns_on
+  private_zone  = false
+}
+
+resource "aws_route53_record" "playground" {
+  count         = var.setup_dns ? 1 : 0
+  provider      = aws.environment
+
+  zone_id       = data.aws_route53_zone.dns_zone[0].zone_id
+  name          = var.instance_dns
+  type          = "A"
+  ttl           = "300"
+  records       = [aws_instance.app_server.public_ip]
 }
