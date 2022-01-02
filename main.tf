@@ -10,10 +10,23 @@ terraform {
   required_version = ">= 0.14.9"
 }
 
+#------------------------------------------------------------------
+
 data "aws_subnet" "selected" {
   provider = aws.environment
   id       = var.subnet_id
 }
+
+data "template_file" "userdata" {
+  template  = "${file("${path.module}/userdata/standalone.tpl")}"
+  vars      = {
+    mode            = var.mode
+    instance_dns    = var.instance_dns
+    volume_mount_id = var.volume_mount_id
+  }
+}
+
+#------------------------------------------------------------------
 
 resource "aws_ebs_volume" "example" {
   provider = aws.environment
@@ -36,9 +49,9 @@ resource "aws_security_group" "allow_tls" {
     for_each           = var.inbound
     content {
       description      = ingress.key
-      from_port        = ingress.value[0]
-      to_port          = ingress.value[1]
-      protocol         = "tcp"
+      from_port        = ingress.value.from
+      to_port          = ingress.value.to
+      protocol         = ingress.value.protocol
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]  
     }
@@ -94,8 +107,8 @@ resource "aws_instance" "app_server" {
 
   ami                     = var.image_id
   instance_type           = var.instance_size
-  key_name                = "craftkey3"
-  user_data               = var.user_data
+  key_name                = var.key_name
+  user_data               = data.template_file.userdata.rendered
   availability_zone       = data.aws_subnet.selected.availability_zone
   subnet_id               = var.subnet_id
   vpc_security_group_ids  = [aws_security_group.allow_tls.id]
@@ -116,10 +129,18 @@ resource "aws_volume_attachment" "ebs_att" {
   instance_id = aws_instance.app_server.id
 }
 
-output "generic_public_ip" {
-  value = aws_instance.app_server.public_ip
+data "aws_route53_zone" "dns_zone" {
+  provider      = aws.environment
+  name          = var.route53_dns_tld
+  private_zone  = false
 }
 
-output "instance_id" {
-  value = aws_instance.app_server.id
+resource "aws_route53_record" "playground" {
+  provider      = aws.environment
+
+  zone_id       = data.aws_route53_zone.dns_zone.zone_id
+  name          = var.instance_dns
+  type          = "A"
+  ttl           = "300"
+  records       = [aws_instance.app_server.public_ip]
 }

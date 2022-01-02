@@ -10,7 +10,6 @@ variable "instance_size" {
 
 variable "snapshot_id" {
   type    = string
-  default = ""
 }
 
 variable "instance_dns" {
@@ -29,7 +28,7 @@ variable "environment" {
   type    = string
 }
 
-variable "volume_mount_id" {
+variable "key_name" {
   type    = string
 }
 
@@ -45,6 +44,19 @@ variable "policy_name" {
   type    = string
 }
 
-variable "user_data" {
+variable "mode" {
+  type    = string
+}
+
+variable "volume_mount_id" {
+  type    = string
+}
+
+variable "license_id" {
+  type    = string
+  default = ""
+}
+
+variable "route53_dns_tld" {
   type    = string
 }
