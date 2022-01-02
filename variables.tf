@@ -57,12 +57,6 @@ variable "license_id" {
   default = ""
 }
 
-variable "setup_dns" {
-  type    = bool
-  default = false
-}
-
-variable "setup_dns_on" {
+variable "route53_dns_tld" {
   type    = string
-  default = ""
 }

@@ -49,9 +49,9 @@ resource "aws_security_group" "allow_tls" {
     for_each           = var.inbound
     content {
       description      = ingress.key
-      from_port        = ingress.value[0]
-      to_port          = ingress.value[1]
-      protocol         = "tcp"
+      from_port        = ingress.value.from
+      to_port          = ingress.value.to
+      protocol         = ingress.value.protocol
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]  
     }
@@ -130,18 +130,15 @@ resource "aws_volume_attachment" "ebs_att" {
 }
 
 data "aws_route53_zone" "dns_zone" {
-  count         = var.setup_dns ? 1 : 0
   provider      = aws.environment
-
-  name          = var.setup_dns_on
+  name          = var.route53_dns_tld
   private_zone  = false
 }
 
 resource "aws_route53_record" "playground" {
-  count         = var.setup_dns ? 1 : 0
   provider      = aws.environment
 
-  zone_id       = data.aws_route53_zone.dns_zone[0].zone_id
+  zone_id       = data.aws_route53_zone.dns_zone.zone_id
   name          = var.instance_dns
   type          = "A"
   ttl           = "300"
