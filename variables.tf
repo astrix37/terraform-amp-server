@@ -61,7 +61,12 @@ variable "route53_dns_tld" {
   type    = string
 }
 
-variable "tags" {
+variable "volume_tags" {
+  type    = map
+  default = {}
+}
+
+variable "instance_tags" {
   type    = map
   default = {}
 }

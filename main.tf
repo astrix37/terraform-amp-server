@@ -28,16 +28,27 @@ data "template_file" "userdata" {
 
 #------------------------------------------------------------------
 
-resource "aws_ebs_volume" "example" {
-  provider = aws.environment
+locals {
+  default_tags          = {
+    Name            = var.instance_name
+    DNSName         = var.instance_dns
+    Environment     = var.environment
+  }
+  merged_instance_tags  = merge(local.default_tags, var.instance_tags)
 
-  availability_zone = data.aws_subnet.selected.availability_zone
-  snapshot_id       = var.snapshot_id
-
-  tags = {
+  default_volume_tags   = {
     Name            = var.volume_name
     Environment     = var.environment
   }
+  merged_volume_tags    = merge(local.default_volume_tags, var.volume_tags)
+}
+
+resource "aws_ebs_volume" "example" {
+  provider          = aws.environment
+  
+  availability_zone = data.aws_subnet.selected.availability_zone
+  snapshot_id       = var.snapshot_id
+  tags              = local.merged_volume_tags
 }
 
 resource "aws_security_group" "allow_tls" {
@@ -102,15 +113,6 @@ resource "aws_iam_policy" "policy_one" {
   })
 }
 
-locals {
-  default_tags = {
-    Name            = var.instance_name
-    DNSName         = var.instance_dns
-    Environment     = var.environment
-  }
-  merged_tags  = merge(local.default_tags, var.tags)
-}
-
 resource "aws_instance" "app_server" {
   provider                = aws.environment
 
@@ -127,7 +129,7 @@ resource "aws_instance" "app_server" {
     ignore_changes = [] 
   }
 
-  tags = local.merged_tags
+  tags = local.merged_instance_tags
 }
 
 resource "aws_volume_attachment" "ebs_att" {
