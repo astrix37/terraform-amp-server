@@ -114,6 +114,10 @@ resource "aws_instance" "app_server" {
   vpc_security_group_ids  = [aws_security_group.allow_tls.id]
   iam_instance_profile    = aws_iam_instance_profile.test_profile.name
 
+  lifecycle { 
+    ignore_changes = [user_data] 
+  }
+
   tags = {
     Name            = var.instance_name
     DNSName         = var.instance_dns
