@@ -102,6 +102,15 @@ resource "aws_iam_policy" "policy_one" {
   })
 }
 
+locals {
+  default_tags = {
+    Name            = var.instance_name
+    DNSName         = var.instance_dns
+    Environment     = var.environment
+  }
+  merged_tags  = merge(local.default_tags, var.tags)
+}
+
 resource "aws_instance" "app_server" {
   provider                = aws.environment
 
@@ -115,14 +124,10 @@ resource "aws_instance" "app_server" {
   iam_instance_profile    = aws_iam_instance_profile.test_profile.name
 
   lifecycle { 
-    ignore_changes = [user_data] 
+    ignore_changes = [] 
   }
 
-  tags = {
-    Name            = var.instance_name
-    DNSName         = var.instance_dns
-    Environment     = var.environment
-  }
+  tags = local.merged_tags
 }
 
 resource "aws_volume_attachment" "ebs_att" {
