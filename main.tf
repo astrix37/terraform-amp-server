@@ -126,7 +126,7 @@ resource "aws_instance" "app_server" {
   iam_instance_profile    = aws_iam_instance_profile.test_profile.name
 
   lifecycle { 
-    ignore_changes = [] 
+    ignore_changes = [user_data] 
   }
 
   tags = local.merged_instance_tags
