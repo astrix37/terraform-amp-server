@@ -60,3 +60,13 @@ variable "license_id" {
 variable "route53_dns_tld" {
   type    = string
 }
+
+variable "volume_tags" {
+  type    = map
+  default = {}
+}
+
+variable "instance_tags" {
+  type    = map
+  default = {}
+}
