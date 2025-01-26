@@ -11,7 +11,7 @@ sudo apt-get -y install nginx certbot python3-certbot-nginx
 sudo ufw allow from any to any port 8080 proto tcp
 sudo apt -y install ampinstmgr
 
-sudo apt-get -y install openjdk-16-jdk
+sudo apt-get -y install openjdk-17-jdk
 
 sudo mkdir /data
 sudo cp /etc/fstab /etc/fstab.orig
